@@ -102,7 +102,5 @@ class Graph:
         nx.draw_networkx_labels(G, pos, labels=labels, font_weight="bold", font_color="#6c6c6c", font_size=8,
                                 font_family='arial', ax=ax)
 
-        # 保存图像
-        # plt.savefig("computing_graph.png")  # save as png
-        
+
 default_graph = Graph()
