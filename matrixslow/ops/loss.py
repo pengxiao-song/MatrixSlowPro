@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..core import Node
-# from ..ops import SoftMax
+from ..ops import SoftMax
 
 class LossFunction(Node):
     '''
@@ -27,3 +27,6 @@ class PerceptionLoss(LossFunction):
         '''
         diag = np.where(parent.value >= 0.0, 0.0, -1)
         return np.diag(diag.ravel())
+    
+    
+    
