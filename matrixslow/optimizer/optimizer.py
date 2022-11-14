@@ -16,7 +16,7 @@ class Optimizer:
         '''
         assert isinstance(target, Node) and isinstance(graph, Graph)
         self.graph = graph
-        
+
         # TODO: 目前只支持优化一个目标节点
         self.target = target
         self.lr = lr
