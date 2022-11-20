@@ -145,3 +145,75 @@ class SoftMax(Operator):
         训练时使用 CrossEntropyWithSoftMax 节点
         '''
         raise NotImplementedError("Don't use SoftMax's get_jacobi")
+
+
+class ReLU(Operator):
+    '''
+    LeakyRelu
+    '''
+    
+    nslope = 0.1 # 负半轴斜率   
+    
+    def compute(self):
+        self.value = np.mat(np.where(
+            self.parents[0].value > 0.0,
+            self.parents[0].value,
+            self.nslope * self.parents[0].value
+        ))
+        
+    def get_jacobi(self, parent):
+        assert parent is self.parents[0]
+        return np.diag(np.where(
+            self.parents[0].value.A1 > 0.0,
+            1.0,
+            self.nslope
+        ))
+        
+        
+class Reshape(Operator):
+    '''
+    改变父节点的形状
+    '''
+    def __init__(self, *parents, **kargs) -> None:
+        super().__init__(*parents, **kargs)
+        
+        self.to_reshape = kargs.get('shape')
+        assert isinstance(self.to_reshape, tuple) and len(self.to_reshape) == 2
+        
+    def compute(self):
+        self.value = self.parents[0].value.reshape(self.to_reshape)
+        
+    def get_jacobi(self, parent):
+        assert parent is self.parents[0]
+        return np.mat(np.eye(self.dimension()))
+    
+    
+class Concat(Operator):
+    '''
+    将多个父节点的值连接成向量
+    '''
+    def compute(self):
+        assert len(self.parents) > 0
+        
+        # 将所有父节点矩阵按行展开并连接成一个向量
+        self.value = np.concatenate(
+            [p.value.flatten() for p in self.parents],
+            axis=1
+        ).T
+        
+    def get_jacobi(self, parent):
+        assert parent in self.parents
+        
+        dimensions = [p.dimension() for p in self.parents]
+        pos = self.parents.index(parent)
+        dimension = parent.dimension()
+        
+        assert dimension == dimensions[pos]
+        
+        jacobi = np.mat(np.zeros((self.dimension(), dimension)))
+        start_row = int(np.sum(dimensions[:pos]))
+        jacobi[start_row:start_row + dimension,
+               0:dimension] = np.eye(dimension)
+        
+        return jacobi
+        

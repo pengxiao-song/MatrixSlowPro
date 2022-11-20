@@ -59,7 +59,7 @@ mini_batch_size = 8
 cur_batch_size = 0
 
 # 训练执行50个epoch
-for epoch in range(20):
+for epoch in range(200):
 
     # 遍历训练集中的样本
     for i in range(len(train_set)):
