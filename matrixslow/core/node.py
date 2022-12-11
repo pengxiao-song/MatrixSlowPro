@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import List
 import numpy as np
 from .graph import default_graph
 
@@ -7,49 +8,55 @@ class Node:
     '''
     计算图节点基类
     '''
-    value:  np.matrix
-    jacobi: np.matrix
 
     def __init__(self, *parents, **kargs) -> None:
 
         self.kargs = kargs
-        self.graph = kargs.get('graph', default_graph)  # 设置节点所属计算图
-        self.need_save = kargs.get('need_save', True)
-        self.generate_node_name(**kargs)  # 生成节点名称
 
-        self.parents = list(parents)
-        self.children = []
-        self.value = None
-        self.jacobi = None
+        # 节点所属计算图
+        self.graph = kargs.get('graph', default_graph)
 
-        # 添加到父节点的子节点列表中
+        # 节点名称
+        self.name = self.generate_node_name(**kargs)
+
+        # 该节点的父节点和子节点
+        self.parents: List[Node] = list(parents)
+        self.children: List[Node] = []
+
+        # 该节点的值和雅可比矩阵
+        self.value: np.matrix = None
+        self.jacobi: np.matrix = None
+
+        # 把该节点添加到父节点的子节点列表中
         for parent in self.parents:
             parent.children.append(self)
 
-        # 添加到计算图中
+        # 把该节点添加到所属计算图中
         self.graph.add_node(self)
 
     def get_parents(self):
         '''
-        获取该节点的父节点
+        获取该节点的父节点们
         '''
         return self.parents
 
     def get_children(self):
         '''
-        获取该节点的子节点
+        获取该节点的子节点们
         '''
         return self.children
 
-    def generate_node_name(self, **kargs):
+    def generate_node_name(self, **kargs) -> str:
         '''
-        生成节点名称，如果用户不指定，则根据节点类型生成类似于"MatMul:3"的节点名，
-        如果指定了name_scope，则生成类似"Hidden/MatMul:3"的节点名
+        生成节点名称
         '''
-        self.name = kargs.get('name', '{}:{}'.format(
-            self.__class__.__name__, self.graph.node_count()))
+        name = kargs.get('name', '')
+        name = '{}:{}:{}'.format(name, self.__class__.__name__, self.graph.count_node())
+
         if self.graph.name_scope:
-            self.name = '{}/{}'.format(self.graph.name_scope, self.name)
+            name = '{}/{}'.format(self.graph.name_scope, name)
+
+        return name
 
     def forward(self):
         '''
@@ -78,16 +85,14 @@ class Node:
         反向传播，计算结果节点对该节点的雅可比矩阵
         '''
         if self.jacobi is None:
-            if self is result:
+            if self is result:  # 对于结果节点
                 self.jacobi = np.mat(np.eye(self.dimension()))
-            else:
-                self.jacobi = np.mat(
-                    np.zeros((result.dimension(), self.dimension())))
+            else:   # 对于非结果节点
+                self.jacobi = np.mat(np.zeros((result.dimension(), self.dimension())))
 
                 for child in self.get_children():
-                    if child.value is not None:  # 对于本次前向传播路径上的相关节点
-                        self.jacobi += child.backward(result) * \
-                            child.get_jacobi(self)
+                    if child.value is not None:
+                        self.jacobi += child.backward(result) * child.get_jacobi(self)
 
         return self.jacobi
 
@@ -105,7 +110,7 @@ class Node:
 
     def shape(self):
         '''
-        返回该节点的值作为矩阵的形状：（行数，列数）
+        返回该节点值的矩阵形状：（行数，列数）
         '''
         return self.value.shape
 
@@ -131,7 +136,7 @@ class Variable(Node):
         super().__init__(**kargs)
         self.dim = dim
 
-        # 是否需要初始化
+        # 是否初始化
         if init:
             self.value = np.mat(np.random.normal(0, 0.001, self.dim))
 

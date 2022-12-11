@@ -5,10 +5,9 @@ class Graph:
     '''
     计算图类
     '''
-
-    def __init__(self) -> None:
+    def __init__(self, name_scope=None):
         self.nodes = []
-        self.name_scope = None
+        self.name_scope = name_scope
 
     def add_node(self, node):
         '''
@@ -25,21 +24,20 @@ class Graph:
 
     def reset_value(self):
         '''
-        重置途中全部节点的值
+        重置计算图中所有节点的值
         '''
         for node in self.nodes:
             node.reset_value(recursive=False)  # 不递归清除子节点的值
 
-    def node_count(self):
+    def count_node(self):
         return len(self.nodes)
 
     def draw(self, ax=None):
         try:
             import networkx as nx
             import matplotlib.pyplot as plt
-            from matplotlib.colors import ListedColormap
         except:
-            raise Exception("Need Module networkx")
+            raise ModuleNotFoundError("Need Module: 'networkx' and 'matplotlib'")
 
         G = nx.Graph()
 
@@ -47,7 +45,7 @@ class Graph:
         labels = {}
         for node in self.nodes:
             G.add_node(node)
-            labels[node] = node.__class__.__name__ + ("({:s})".format(str(node.dim)) if hasattr(node, "dim") else "") \
+            labels[node] = node.name + ("({:s})".format(str(node.dim)) if hasattr(node, "dim") else "") \
                 + ("\n[{:.3f}]".format(np.linalg.norm(node.jacobi))
                    if node.jacobi is not None else "")
 
@@ -98,7 +96,6 @@ class Graph:
         nx.draw_networkx_nodes(G, pos, nodelist=nodelist, node_color="#999999", cmap=cm, edgecolors="#666666",
                                node_size=2000, alpha=1.0, ax=ax)
 
-        # 边
         nx.draw_networkx_edges(G, pos, width=2, edge_color="#014b66", ax=ax)
         nx.draw_networkx_labels(G, pos, labels=labels, font_weight="bold", font_color="#6c6c6c", font_size=8,
                                 font_family='arial', ax=ax)

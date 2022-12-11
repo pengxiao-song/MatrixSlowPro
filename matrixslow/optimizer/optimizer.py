@@ -15,9 +15,8 @@ class Optimizer:
         构造函数接受计算图对象、目标节点对象、学习率
         '''
         assert isinstance(target, Node) and isinstance(graph, Graph)
-        self.graph = graph
 
-        # TODO: 目前只支持优化一个目标节点
+        self.graph = graph
         self.target = target
         self.lr = lr
 
@@ -45,15 +44,14 @@ class Optimizer:
         抽象方法，具体的梯度更新算法
         '''
 
-    def apply_gradients(self, node_gradients_dict,
-                        summarize=False, acc_no=None):
+    def apply_gradients(self, node_gradients_dict, summarize=False, acc_no=None):
         pass
 
     def update(self, var_gradients=None):
         if var_gradients is not None:
             self.apply_gradients(var_gradients)
 
-        # 执行具体梯度更新算法
+        # 执行具体的梯度更新算法
         self._update()
 
         # 清除累加梯度
@@ -123,8 +121,7 @@ class Momentum(Optimizer):
                 if node not in self.v:
                     self.v[node] = gradient
                 else:
-                    self.v[node] = self.momentum * \
-                        self.v[node] - self.lr * gradient
+                    self.v[node] = self.momentum * self.v[node] - self.lr * gradient
 
                 # 更新变量节点的值
                 node.set_value(node.value + self.v[node])
