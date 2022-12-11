@@ -7,8 +7,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
 # 读取数据，去掉无用列
-data = pd.read_csv("../data/titanic.csv").drop(["PassengerId", 
-                  "Name", "Ticket", "Cabin"], axis=1)
+data = ms.utils.get_titanic_data("../data/titanic.csv")
 
 # 构造编码类
 le = LabelEncoder()
@@ -136,7 +135,7 @@ for epoch in range(200):
         predict.forward()
         pred.append(predict.value[0, 0])
             
-    pred = (np.array(pred) > 0.5).astype(np.int) * 2 - 1
-    accuracy = (labels == pred).astype(np.int).sum() / len(features)
+    pred = (np.array(pred) > 0.5).astype(int) * 2 - 1
+    accuracy = (labels == pred).astype(int).sum() / len(features)
        
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

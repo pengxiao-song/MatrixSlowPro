@@ -6,17 +6,14 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
-# 读取鸢尾花数据集，去掉第一列Id
-data = pd.read_csv("../data/Iris.csv").drop("Id", axis=1)
+# 读取鸢尾花数据集
+data = ms.utils.get_iris_data("../data/iris.csv")
 
-# 随机打乱样本顺序
-data = data.sample(len(data), replace=False)
-
-# 将字符串形式的类别标签转换成整数0，1，2
+# 将字符串形式的类别标签转换成整数 0，1，2
 le = LabelEncoder()
 number_label = le.fit_transform(data["Species"])
 
-# 将整数形式的标签转换成One-Hot编码
+# 将整数形式的标签转换成 One-Hot 编码
 oh = OneHotEncoder(sparse=False)
 one_hot_label = oh.fit_transform(number_label.reshape(-1, 1))
 
@@ -27,16 +24,16 @@ features = data[['SepalLengthCm',
                  'PetalWidthCm']].values
 
 
-# 构造计算图：输入向量，是一个4x1矩阵，不需要初始化，不参与训练
+# 构造计算图：输入向量，是一个 4x1 矩阵，不需要初始化，不参与训练
 x = ms.core.Variable(dim=(4, 1), init=False, trainable=False)
 
-# One-Hot类别标签，是3x1矩阵，不需要初始化，不参与训练
+# One-Hot类别标签，是 3x1 矩阵，不需要初始化，不参与训练
 one_hot = ms.core.Variable(dim=(3, 1), init=False, trainable=False)
 
-# 权值矩阵，是一个3x4矩阵，需要初始化，参与训练
+# 权值矩阵，是一个 3x4 矩阵，需要初始化，参与训练
 W = ms.core.Variable(dim=(3, 4), init=True, trainable=True)
 
-# 偏置向量，是一个3x1矩阵，需要初始化，参与训练
+# 偏置向量，是一个 3x1 矩阵，需要初始化，参与训练
 b = ms.core.Variable(dim=(3, 1), init=True, trainable=True)
 
 # 线性部分
@@ -66,17 +63,17 @@ for epoch in range(200):
     # 遍历训练集中的样本
     for i in range(len(features)):
         
-        # 取第i个样本，构造4x1矩阵对象
+        # 取第i个样本，构造 4x1 矩阵对象
         feature = np.mat(features[i,:]).T
         
-        # 取第i个样本的One-Hot标签，3x1矩阵
+        # 取第i个样本的 One-Hot 标签，3x1 矩阵
         label = np.mat(one_hot_label[i,:]).T
         
-        # 将特征赋给x节点，将标签赋给one_hot节点
+        # 将特征赋给 x 节点，将标签赋给 one_hot 节点
         x.set_value(feature)
         one_hot.set_value(label)
         
-        # 调用优化器的one_step方法，执行一次前向传播和反向传播
+        # 调用优化器的 one_step 方法，执行一次前向传播和反向传播
         optimizer.one_step()
         
         # 批计数器加1
@@ -88,7 +85,7 @@ for epoch in range(200):
             batch_count = 0
             
 
-    # 每个epoch结束后评估模型的正确率
+    # 每个 epoch 结束后评估模型的正确率
     pred = []
     
     # 遍历训练集，计算当前模型对每个样本的预测值
@@ -97,7 +94,7 @@ for epoch in range(200):
         feature = np.mat(features[i,:]).T
         x.set_value(feature)
         
-        # 在模型的predict节点上执行前向传播
+        # 在模型的 predict 节点上执行前向传播
         predict.forward()
         pred.append(predict.value.A.ravel())  # 模型的预测结果：3个概率值
     
@@ -105,7 +102,7 @@ for epoch in range(200):
     pred = np.array(pred).argmax(axis=1)
     
     # 判断预测结果与样本标签相同的数量与训练集总数量之比，即模型预测的正确率
-    accuracy = (number_label == pred).astype(np.int).sum() / len(data)
+    accuracy = (number_label == pred).astype(int).sum() / len(data)
        
     # 打印当前epoch数和模型在训练集上的正确率
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

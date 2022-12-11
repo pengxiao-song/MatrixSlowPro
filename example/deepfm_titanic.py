@@ -1,15 +1,12 @@
-
 import sys
 sys.path.append('..')
 
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+import numpy as np
 
 # 读取数据，去掉无用列
-data = pd.read_csv("../data/titanic.csv").drop(["PassengerId", 
-                  "Name", "Ticket", "Cabin"], axis=1)
+data = ms.utils.get_titanic_data("../data/titanic.csv")
 
 # 构造编码类
 le = LabelEncoder()
@@ -47,7 +44,6 @@ x_Pclass = ms.core.Variable(dim=(Pclass.shape[1], 1), init=False, trainable=Fals
 x_Sex = ms.core.Variable(dim=(Sex.shape[1], 1), init=False, trainable=False)
 x_Embarked = ms.core.Variable(dim=(Embarked.shape[1], 1), init=False, trainable=False)
 
-
 # 标签
 label = ms.core.Variable(dim=(1, 1), init=False, trainable=False)
 
@@ -70,18 +66,16 @@ embedding_Embarked = ms.ops.MatMul(E_Embarked, x_Embarked)
 
 # 将三个嵌入向量连接在一起
 embedding = ms.ops.Concat(
-        embedding_Pclass,
-        embedding_Sex,
-        embedding_Embarked
-        )
+    embedding_Pclass,
+    embedding_Sex,
+    embedding_Embarked
+)
 
 
 # FM部分
-fm = ms.ops.Add(ms.ops.MatMul(w, x),   # 一次部分                
-                # 二次部分
-                ms.ops.MatMul(ms.ops.Reshape(embedding, shape=(1, 3 * k)), embedding)
+fm = ms.ops.Add(ms.ops.MatMul(w, x),   # 一次部分
+                ms.ops.MatMul(ms.ops.Reshape(embedding, shape=(1, 3 * k)), embedding)# 二次部分
                 )
-
 
 
 # Deep部分，第一隐藏层
@@ -109,40 +103,39 @@ optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
 batch_size = 16
 
 for epoch in range(50):
-    
-    batch_count = 0   
+
+    batch_count = 0
     for i in range(len(features)):
-        
+
         x.set_value(np.mat(features[i]).T)
-        
-        # 从特征中选择各段One-Hot编码
+
+        # 从特征中选择各段 One-Hot 编码
         x_Pclass.set_value(np.mat(features[i, :3]).T)
         x_Sex.set_value(np.mat(features[i, 3:5]).T)
         x_Embarked.set_value(np.mat(features[i, 9:]).T)
-        
+
         label.set_value(np.mat(labels[i]))
-        
+
         optimizer.one_step()
-        
+
         batch_count += 1
         if batch_count >= batch_size:
-            
+
             optimizer.update()
             batch_count = 0
-        
 
     pred = []
     for i in range(len(features)):
-                
+
         x.set_value(np.mat(features[i]).T)
         x_Pclass.set_value(np.mat(features[i, :3]).T)
         x_Sex.set_value(np.mat(features[i, 3:5]).T)
         x_Embarked.set_value(np.mat(features[i, 9:]).T)
-        
+
         predict.forward()
         pred.append(predict.value[0, 0])
-            
-    pred = (np.array(pred) > 0.5).astype(np.int) * 2 - 1
-    accuracy = (labels == pred).astype(np.int).sum() / len(features)
-       
+
+    pred = (np.array(pred) > 0.5).astype(int) * 2 - 1
+    accuracy = (labels == pred).astype(int).sum() / len(features)
+
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

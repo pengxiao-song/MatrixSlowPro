@@ -6,11 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
-# 读取鸢尾花数据集，去掉第一列Id
-data = pd.read_csv("../data/Iris.csv").drop("Id", axis=1)
-
-# 随机打乱样本顺序
-data = data.sample(len(data), replace=False)
+data = ms.utils.get_iris_data("../data/iris.csv")
 
 # 将字符串形式的类别标签转换成整数0，1，2
 le = LabelEncoder()
@@ -103,7 +99,7 @@ for epoch in range(30):
     pred = np.array(pred).argmax(axis=1)  # 取最大概率对应的类别为预测类别
     
     # 判断预测结果与样本标签相同的数量与训练集总数量之比，即模型预测的正确率
-    accuracy = (number_label == pred).astype(np.int).sum() / len(data)
+    accuracy = (number_label == pred).astype(int).sum() / len(data)
        
     # 打印当前epoch数和模型在训练集上的正确率
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

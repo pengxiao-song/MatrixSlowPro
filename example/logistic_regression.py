@@ -4,26 +4,8 @@ sys.path.append('..')
 import numpy as np
 import matrixslow as ms
 
-male_heights = np.random.normal(171, 6, 500)
-female_heights = np.random.normal(158, 5, 500)
-
-male_weights = np.random.normal(70, 10, 500)
-female_weights = np.random.normal(57, 8, 500)
-
-male_bfrs = np.random.normal(16, 2, 500)
-female_bfrs = np.random.normal(22, 2, 500)
-
-male_labels = [1] * 500
-female_labels = [-1] * 500 
-
-train_set = np.array([np.concatenate((male_heights, female_heights)),
-                      np.concatenate((male_weights, female_weights)),
-                      np.concatenate((male_bfrs, female_bfrs)),
-                      np.concatenate((male_labels, female_labels))]).T
-
-# 随机打乱样本顺序
-np.random.shuffle(train_set)
-    
+# 初始化数据集
+train_set = ms.utils.get_male_female_data()
 
 # 构造计算图：输入向量，是一个3x1矩阵，不需要初始化，不参与训练
 x = ms.core.Variable(dim=(3, 1), init=False, trainable=False)
@@ -98,10 +80,10 @@ for epoch in range(50):
         pred.append(predict.value[0, 0])  # 模型的预测结果：1男，0女
        
     # 将1/0结果转化成1/-1结果，好与训练标签的约定一致
-    pred = (np.array(pred) > 0.5).astype(np.int) * 2 - 1
+    pred = (np.array(pred) > 0.5).astype(int) * 2 - 1
     
     # 判断预测结果与样本标签相同的数量与训练集总数量之比，即模型预测的正确率
-    accuracy = (train_set[:,-1] == pred).astype(np.int).sum() / len(train_set)
+    accuracy = (train_set[:,-1] == pred).astype(int).sum() / len(train_set)
        
     # 打印当前epoch数和模型在训练集上的正确率
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy)) 

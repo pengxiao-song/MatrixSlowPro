@@ -2,11 +2,9 @@ import sys
 sys.path.append('..')
 
 import numpy as np
-from sklearn.datasets import make_circles
 import matrixslow as ms
 
-X, y = make_circles(600, noise=0.1, factor=0.2)
-y = y * 2 - 1
+X, y = ms.utils.get_circles_data()
 
 # 特征维数
 dimension = 20
@@ -36,9 +34,7 @@ b = ms.core.Variable(dim=(1, 1), init=True, trainable=True)
 # 线性部分
 output = ms.ops.Add(
         ms.ops.MatMul(w, x1),   # 一次部分
-        
-        # 二次部分
-        ms.ops.MatMul(ms.ops.Reshape(x1, shape=(1, dimension)),
+        ms.ops.MatMul(ms.ops.Reshape(x1, shape=(1, dimension)),  # 二次部分
                       ms.ops.MatMul(HTH, x1)),
         b)
 
@@ -79,7 +75,7 @@ for epoch in range(50):
         predict.forward()
         pred.append(predict.value[0, 0])
             
-    pred = (np.array(pred) > 0.5).astype(np.int) * 2 - 1
-    accuracy = (y == pred).astype(np.int).sum() / len(X)
+    pred = (np.array(pred) > 0.5).astype(int) * 2 - 1
+    accuracy = (y == pred).astype(int).sum() / len(X)
        
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

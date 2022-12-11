@@ -5,9 +5,7 @@ import numpy as np
 import matrixslow as ms
 from sklearn.datasets import make_circles
 
-# 获取同心圆状分布的数据，X的每行包含两个特征，y是1/0类别标签
-X, y = make_circles(200, noise=0.1, factor=0.2)
-y = y * 2 - 1  # 将标签转化为1/-1
+X, y = ms.utils.get_circles_data()
 
 # 是否使用二次项
 use_quadratic = True
@@ -87,7 +85,7 @@ for epoch in range(50):
         predict.forward()
         pred.append(predict.value[0, 0])
             
-    pred = (np.array(pred) > 0.5).astype(np.int) * 2 - 1
+    pred = (np.array(pred) > 0.5).astype(int) * 2 - 1
     
-    accuracy = (y == pred).astype(np.int).sum() / len(X)
+    accuracy = (y == pred).astype(int).sum() / len(X)
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))
