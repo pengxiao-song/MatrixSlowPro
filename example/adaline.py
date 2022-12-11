@@ -5,7 +5,7 @@ import numpy as np
 import matrixslow as ms
 
 # 初始化数据集
-train_set = ms.utils.get_male_female_data()
+train_set = ms.util.get_male_female_data()
 
 # 构造计算图
 x = ms.core.Variable(dim=(3, 1), init=False, trainable=False, name='x')

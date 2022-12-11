@@ -6,10 +6,10 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
-# 构建数据集
+# 构建数据集w
 path_train = "../data/ArticularyWordRecognition_TRAIN.arff"
 path_test = "../data/ArticularyWordRecognition_TEST.arff"
-train, test = ms.utils.get_awr_data(path_train, path_test)
+train, test = ms.util.get_awr_data(path_train, path_test)
 
 # 整理数据格式，每个样本是144x9的数组，序列共144个时刻，每个时刻9个值
 signal_train = np.array([np.array([list(channel) for channel in sample]).T for sample in train["relationalAtt"]])

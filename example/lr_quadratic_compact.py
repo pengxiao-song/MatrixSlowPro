@@ -5,7 +5,7 @@ import numpy as np
 import matrixslow as ms
 from sklearn.datasets import make_circles
 
-X, y = ms.utils.get_circles_data()
+X, y = ms.util.get_circles_data()
 
 # 一次项，2维向量（2x1矩阵）
 x1 = ms.core.Variable(dim=(2, 1), init=False, trainable=False)

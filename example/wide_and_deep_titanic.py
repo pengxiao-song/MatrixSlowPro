@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
 # 读取数据，去掉无用列
-data = ms.utils.get_titanic_data("../data/titanic.csv")
+data = ms.util.get_titanic_data("../data/titanic.csv")
 
 # 构造编码类
 le = LabelEncoder()

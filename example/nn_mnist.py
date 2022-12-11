@@ -7,7 +7,7 @@ from sklearn.preprocessing import OneHotEncoder
 import matrixslow as ms
 
 # 加载 MNIST 数据集
-X, y = ms.utils.get_mnist_data("../data/mnist-original.mat")
+X, y = ms.util.get_mnist_data("../data/mnist-original.mat")
 
 # 将整数形式的标签转换成One-Hot编码
 oh = OneHotEncoder(sparse=False)

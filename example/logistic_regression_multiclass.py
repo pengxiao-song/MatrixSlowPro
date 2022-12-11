@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
 # 读取鸢尾花数据集
-data = ms.utils.get_iris_data("../data/iris.csv")
+data = ms.util.get_iris_data("../data/iris.csv")
 
 # 将字符串形式的类别标签转换成整数 0，1，2
 le = LabelEncoder()

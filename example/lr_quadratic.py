@@ -5,7 +5,7 @@ import numpy as np
 import matrixslow as ms
 from sklearn.datasets import make_circles
 
-X, y = ms.utils.get_circles_data()
+X, y = ms.util.get_circles_data()
 
 # 是否使用二次项
 use_quadratic = True

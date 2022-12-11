@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
-data = ms.utils.get_iris_data("../data/iris.csv")
+data = ms.util.get_iris_data("../data/iris.csv")
 
 # 将字符串形式的类别标签转换成整数0，1，2
 le = LabelEncoder()

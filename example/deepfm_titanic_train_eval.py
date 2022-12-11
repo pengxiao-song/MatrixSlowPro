@@ -1,21 +1,25 @@
 import sys
 sys.path.append('..')
 
-import matrixslow as ms
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+import matrixslow as ms
+from matrixslow.trainer import SimpleTrainer
 
-# 读取数据，去掉无用列
-data = ms.util.get_titanic_data("../data/titanic.csv")
+data = ms.util.get_titanic_data()
 
 # 构造编码类
 le = LabelEncoder()
 ohe = OneHotEncoder(sparse=False)
 
-# 对类别型特征做One-Hot编码
-Pclass = ohe.fit_transform(le.fit_transform(data["Pclass"].fillna(0)).reshape(-1, 1))
-Sex = ohe.fit_transform(le.fit_transform(data["Sex"].fillna("")).reshape(-1, 1))
-Embarked = ohe.fit_transform(le.fit_transform(data["Embarked"].fillna("")).reshape(-1, 1))
+# 对类别型特征做 One-Hot 编码
+Pclass = ohe.fit_transform(le.fit_transform(
+    data["Pclass"].fillna(0)).reshape(-1, 1))
+Sex = ohe.fit_transform(le.fit_transform(
+    data["Sex"].fillna("")).reshape(-1, 1))
+Embarked = ohe.fit_transform(le.fit_transform(
+    data["Embarked"].fillna("")).reshape(-1, 1))
 
 # 组合特征列
 features = np.concatenate([Pclass,
@@ -40,9 +44,12 @@ k = 2
 x = ms.core.Variable(dim=(dimension, 1), init=False, trainable=False)
 
 # 三个类别类特征的三套One-Hot
-x_Pclass = ms.core.Variable(dim=(Pclass.shape[1], 1), init=False, trainable=False)
+x_Pclass = ms.core.Variable(
+    dim=(Pclass.shape[1], 1), init=False, trainable=False)
 x_Sex = ms.core.Variable(dim=(Sex.shape[1], 1), init=False, trainable=False)
-x_Embarked = ms.core.Variable(dim=(Embarked.shape[1], 1), init=False, trainable=False)
+x_Embarked = ms.core.Variable(
+    dim=(Embarked.shape[1], 1), init=False, trainable=False)
+
 
 # 标签
 label = ms.core.Variable(dim=(1, 1), init=False, trainable=False)
@@ -51,9 +58,11 @@ label = ms.core.Variable(dim=(1, 1), init=False, trainable=False)
 w = ms.core.Variable(dim=(1, dimension), init=True, trainable=True)
 
 # 类别类特征的嵌入矩阵
-E_Pclass = ms.core.Variable(dim=(k, Pclass.shape[1]), init=True, trainable=True)
+E_Pclass = ms.core.Variable(
+    dim=(k, Pclass.shape[1]), init=True, trainable=True)
 E_Sex = ms.core.Variable(dim=(k, Sex.shape[1]), init=True, trainable=True)
-E_Embarked = ms.core.Variable(dim=(k, Embarked.shape[1]), init=True, trainable=True)
+E_Embarked = ms.core.Variable(
+    dim=(k, Embarked.shape[1]), init=True, trainable=True)
 
 # 偏置
 b = ms.core.Variable(dim=(1, 1), init=True, trainable=True)
@@ -72,9 +81,9 @@ embedding = ms.ops.Concat(
 )
 
 
-# FM部分
+# FM 部分
 fm = ms.ops.Add(ms.ops.MatMul(w, x),   # 一次部分
-                ms.ops.MatMul(ms.ops.Reshape(embedding, shape=(1, 3 * k)), embedding)# 二次部分
+                ms.ops.MatMul(ms.ops.Reshape(embedding, shape=(1, 3 * k)), embedding)   # 二次部分
                 )
 
 
@@ -99,43 +108,19 @@ loss = ms.ops.loss.LogLoss(ms.ops.Multiply(label, output))
 learning_rate = 0.005
 optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
 
+auc = ms.ops.metrics.ROC_AUC(output, label)
+acc = ms.ops.metrics.Accuracy(output, label)
+precision = ms.ops.metrics.Precision(output, label)
+recall = ms.ops.metrics.Recall(output, label)
+f1 = ms.ops.metrics.F1Score(output, label)
 
-batch_size = 16
+trainer = SimpleTrainer([x, x_Pclass, x_Sex, x_Embarked], label,
+                        loss, optimizer, epoches=20, batch=16, eval_on_train=True, metrics=[auc, acc, precision, recall])
 
-for epoch in range(50):
-
-    batch_count = 0
-    for i in range(len(features)):
-
-        x.set_value(np.mat(features[i]).T)
-
-        # 从特征中选择各段 One-Hot 编码
-        x_Pclass.set_value(np.mat(features[i, :3]).T)
-        x_Sex.set_value(np.mat(features[i, 3:5]).T)
-        x_Embarked.set_value(np.mat(features[i, 9:]).T)
-
-        label.set_value(np.mat(labels[i]))
-
-        optimizer.one_step()
-
-        batch_count += 1
-        if batch_count >= batch_size:
-
-            optimizer.update()
-            batch_count = 0
-
-    pred = []
-    for i in range(len(features)):
-
-        x.set_value(np.mat(features[i]).T)
-        x_Pclass.set_value(np.mat(features[i, :3]).T)
-        x_Sex.set_value(np.mat(features[i, 3:5]).T)
-        x_Embarked.set_value(np.mat(features[i, 9:]).T)
-
-        predict.forward()
-        pred.append(predict.value[0, 0])
-
-    pred = (np.array(pred) > 0.5).astype(int) * 2 - 1
-    accuracy = (labels == pred).astype(int).sum() / len(features)
-
-    print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))
+train_inputs = {
+    x.name: features,
+    x_Pclass.name: features[:, :3],
+    x_Sex.name: features[:, 3:5],
+    x_Embarked.name: features[:, 9:]
+}
+trainer.train_and_eval(train_inputs, labels, train_inputs, labels)

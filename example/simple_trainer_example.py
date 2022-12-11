@@ -1,12 +1,14 @@
 import sys
 sys.path.append('..')
 
-import matrixslow as ms
-from sklearn.preprocessing import OneHotEncoder
 import numpy as np
+from sklearn.preprocessing import OneHotEncoder
+import matrixslow as ms
+from matrixslow.trainer import SimpleTrainer
 
 # 加载 MNIST 数据集
-X, y = ms.util.get_mnist_data("../data/mnist-original.mat")
+X, y = ms.util.get_mnist_data()
+X = np.reshape(np.array(X), (X.shape[0], 28, 28))
 
 # 将整数形式的标签转换成 One-Hot 编码
 oh = OneHotEncoder(sparse=False)
@@ -18,7 +20,7 @@ img_shape = (28, 28)
 # 输入图像
 x = ms.core.Variable(img_shape, init=False, trainable=False)
 
-# One-Hot 标签
+# One-Hot标签
 one_hot = ms.core.Variable(dim=(10, 1), init=False, trainable=False)
 
 # 第一卷积层
@@ -51,44 +53,11 @@ learning_rate = 0.005
 # 优化器
 optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
 
+
 # 批大小
 batch_size = 32
 
-# 训练
-for epoch in range(1):
+trainer = SimpleTrainer(
+    [x], one_hot, loss, optimizer, epoches=10, batch_size=batch_size)
 
-    batch_count = 0
-
-    for i in range(len(X)):
-
-        feature = np.mat(X[i]).reshape(img_shape)
-        label = np.mat(one_hot_label[i]).T
-
-        x.set_value(feature)
-        one_hot.set_value(label)
-
-        optimizer.one_step()
-
-        batch_count += 1
-        if batch_count >= batch_size:
-
-            print("epoch: {:d}, iteration: {:d}, loss: {:.3f}".format(
-                epoch + 1, i + 1, loss.value[0, 0]))
-
-            optimizer.update()
-            batch_count = 0
-
-    # 训练集模型评估
-    pred = []
-    for i in range(len(X)):
-
-        feature = np.mat(X[i]).reshape(img_shape)
-        x.set_value(feature)
-
-        predict.forward()
-        pred.append(predict.value.A.ravel())
-
-    pred = np.array(pred).argmax(axis=1)
-    accuracy = (y == pred).astype(np.int).sum() / len(X)
-
-    print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))
+trainer.train({x.name: X}, one_hot_label)

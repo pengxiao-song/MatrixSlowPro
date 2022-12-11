@@ -8,7 +8,7 @@ seq_len = 96
 dimension = 16
 status_dimension = 12
 
-signal_train, label_train, signal_test, label_test = ms.utils.get_sequence_data(length=seq_len, dimension=dimension)
+signal_train, label_train, signal_test, label_test = ms.util.get_sequence_data(length=seq_len, dimension=dimension)
 
 # 输入向量节点
 inputs = [ms.core.Variable(dim=(dimension, 1), init=False, trainable=False) for i in range(seq_len)]

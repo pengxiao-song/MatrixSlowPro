@@ -4,7 +4,7 @@ sys.path.append('..')
 import numpy as np
 import matrixslow as ms
 
-X, y = ms.utils.get_circles_data()
+X, y = ms.util.get_circles_data()
 
 # 特征维数
 dimension = 20

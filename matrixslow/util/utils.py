@@ -30,13 +30,13 @@ def get_male_female_data():
     return train_set
 
 
-def get_mnist_data(path):
+def get_mnist_data(path="../data/mnist-original.mat"):
     mnist = loadmat(path)
     X, y = mnist["data"].T, mnist["label"][0]
     return X, y
 
 
-def get_titanic_data(path):
+def get_titanic_data(path="../data/titanic.csv"):
     data = pd.read_csv(path).drop(
         ["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
     return data

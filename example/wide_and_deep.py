@@ -7,7 +7,7 @@ import numpy as np
 # 特征维数
 dimension = 60
 
-X, y = ms.utils.get_artificial(dimension)
+X, y = ms.util.get_artificial(dimension)
 
 
 # 嵌入向量维度
