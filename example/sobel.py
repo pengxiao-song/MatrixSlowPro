@@ -12,11 +12,11 @@ pic = matplotlib.image.imread('../data/mondrian.jpg') / 255
 # 图像尺寸
 w, h = pic.shape
 
-# 纵向Sobel滤波器
+# 纵向 Sobel 滤波器
 sobel_v = ms.core.Variable(dim=(3, 3), init=False, trainable=False)
 sobel_v.set_value(np.mat([[1, 0, -1], [2, 0, -2], [1, 0, -1]]))
 
-# 横向Sobel滤波器
+# 横向 Sobel 滤波器
 sobel_h = ms.core.Variable(dim=(3, 3), init=False, trainable=False)
 sobel_h.set_value(sobel_v.value.T)
 
@@ -24,11 +24,11 @@ sobel_h.set_value(sobel_v.value.T)
 img = ms.core.Variable(dim=(w, h), init=False, trainable=False)
 img.set_value(np.mat(pic))
 
-# Sobel滤波器输出
+# Sobel 滤波器输出
 sobel_v_output = ms.ops.Convolve(img, sobel_v)
 sobel_h_output = ms.ops.Convolve(img, sobel_h)
 
-# 两个Sobel滤波器的输出平方和
+# 两个 Sobel 滤波器的输出平方和
 square_output = ms.ops.Add(
             ms.ops.Multiply(sobel_v_output, sobel_v_output),
             ms.ops.Multiply(sobel_h_output, sobel_h_output)

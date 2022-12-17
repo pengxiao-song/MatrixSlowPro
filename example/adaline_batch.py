@@ -1,11 +1,11 @@
 import sys
 sys.path.append('..')
-
-import numpy as np
 import matrixslow as ms
+import numpy as np
+
 
 # 初始化数据集
-train_set = ms.util.get_male_female_data()
+train_data, train_targets = ms.util.get_male_female_data()
 
 # 构建计算图
 batch_size = 10
@@ -29,39 +29,36 @@ mean_loss = ms.ops.MatMul(B, loss)
 
 # 训练
 lr = 0.0001
-
 for epoch in range(50):
-    for i in np.arange(0, len(train_set), batch_size):
-        train_data = np.mat(train_set[i:i + batch_size, :-1])
-        train_targets = np.mat(train_set[i:i + batch_size, -1]).T
-        
-        x.set_value(train_data)
-        y.set_value(train_targets)
-        
+    for i in np.arange(0, len(train_data), batch_size):
+        # 节点赋值
+        x.set_value(train_data[i:i + batch_size])
+        y.set_value(train_targets[i:i + batch_size])
+
+        # 前向传播
         mean_loss.forward()
-        
+
+        # 梯度反传
         w.backward(mean_loss)
         b.backward(mean_loss)
-        
+
         # 参数更新
         w.set_value(w.value - lr * w.jacobi.T.reshape(w.shape()))
         b.set_value(b.value - lr * b.jacobi.T.reshape(b.shape()))
-        
+
         # 清空梯度
         ms.default_graph.clear_jacobi()
 
-    # 训练集模型评估
+    # 训练集准确率
     pred = []
-    for i in np.arange(0, len(train_set), batch_size):
-
-        train_data = np.mat(train_set[i:i + batch_size, :-1])
-        x.set_value(train_data)
+    for i in np.arange(0, len(train_data), batch_size):
+        x.set_value(train_data[i:i + batch_size])        
 
         predict.forward()
-        
+
         pred.extend(predict.value.A.ravel())
 
     pred = np.array(pred) * 2 - 1
-    accuracy = (train_set[:, -1] == pred).astype(int).sum() / len(train_set)
+    acc = (np.array(train_targets).flatten() == pred).astype(int).sum() / len(train_data)
     
-    print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))
+    print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, acc))

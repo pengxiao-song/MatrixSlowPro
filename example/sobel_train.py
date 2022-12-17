@@ -12,7 +12,7 @@ pic = matplotlib.image.imread('../data/lena.jpg') / 255
 # 图像尺寸
 w, h = pic.shape
 
-# Sobel滤波器
+# Sobel 滤波器
 sobel = ms.core.Variable(dim=(3, 3), init=False, trainable=False)
 sobel.set_value(np.mat([[1, 0, -1], [2, 0, -2], [1, 0, -1]]))
 
@@ -20,7 +20,7 @@ sobel.set_value(np.mat([[1, 0, -1], [2, 0, -2], [1, 0, -1]]))
 img = ms.core.Variable(dim=(w, h), init=False, trainable=False)
 img.set_value(np.mat(pic))
 
-# Sobel滤波器输出
+# Sobel 滤波器输出
 sobel_output = ms.ops.Convolve(img, sobel)
 
 # 输出图像

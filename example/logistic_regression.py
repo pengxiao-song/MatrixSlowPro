@@ -5,85 +5,48 @@ import numpy as np
 import matrixslow as ms
 
 # 初始化数据集
-train_set = ms.util.get_male_female_data()
+train_data, train_targets = ms.util.get_male_female_data()
 
-# 构造计算图：输入向量，是一个3x1矩阵，不需要初始化，不参与训练
+# 构造计算图
 x = ms.core.Variable(dim=(3, 1), init=False, trainable=False)
-
-# 类别标签，1男，-1女
-label = ms.core.Variable(dim=(1, 1), init=False, trainable=False)
-
-# 权值向量，是一个1x3矩阵，需要初始化，参与训练
+y = ms.core.Variable(dim=(1, 1), init=False, trainable=False)
 w = ms.core.Variable(dim=(1, 3), init=True, trainable=True)
-
-# 偏置，是一个1x1矩阵，需要初始化，参与训练
 b = ms.core.Variable(dim=(1, 1), init=True, trainable=True)
 
 # 预测输出
 output = ms.ops.Add(ms.ops.MatMul(w, x), b)
 predict = ms.ops.Logistic(output)
 
-# 对数损失
-loss = ms.ops.loss.LogLoss(ms.ops.Multiply(label, output))
+# 对数损失和优化器
+loss = ms.ops.loss.LogLoss(ms.ops.Multiply(y, output))
+optimizer = ms.optimizer.Adam(ms.default_graph, loss, lr=0.0001)
 
-# 学习率
-learning_rate = 0.0001
-
-# 构造Adam优化器
-optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
-
-# 批大小为16
+# 模型训练
 batch_size = 16
-
-# 训练执行50个epoch
 for epoch in range(50):
-    
-    # 批计数器清零
     batch_count = 0
-    
-    # 遍历训练集中的样本
-    for i in range(len(train_set)):
+    for i in range(len(train_data)):
         
-        # 取第i个样本的前3列，构造3x1矩阵对象
-        features = np.mat(train_set[i,:-1]).T
+        x.set_value(train_data[i].T)
+        y.set_value(train_targets[i])
         
-        # 取第i个样本的最后一列，是该样本的性别标签（1男，-1女），构造1x1矩阵对象
-        l = np.mat(train_set[i,-1])
-        
-        # 将特征赋给x节点，将标签赋给label节点
-        x.set_value(features)
-        label.set_value(l)
-        
-        # 调用优化器的one_step方法，执行一次前向传播和反向传播
         optimizer.one_step()
         
-        # 批计数器加1
         batch_count += 1
-        
-        # 若批计数器大于等于批大小，则执行一次更新，并清零计数器
         if batch_count >= batch_size:
             optimizer.update()
             batch_count = 0
             
 
-    # 每个epoch结束后评估模型的正确率
     pred = []
-    
-    # 遍历训练集，计算当前模型对每个样本的预测值
-    for i in range(len(train_set)):
+    for i in range(len(train_data)):
                 
-        features = np.mat(train_set[i,:-1]).T
-        x.set_value(features)
+        x.set_value(train_data[i].T)
         
-        # 在模型的predict节点上执行前向传播
         predict.forward()
-        pred.append(predict.value[0, 0])  # 模型的预测结果：1男，0女
+        pred.append(predict.value[0, 0]) 
        
-    # 将1/0结果转化成1/-1结果，好与训练标签的约定一致
     pred = (np.array(pred) > 0.5).astype(int) * 2 - 1
-    
-    # 判断预测结果与样本标签相同的数量与训练集总数量之比，即模型预测的正确率
-    accuracy = (train_set[:,-1] == pred).astype(int).sum() / len(train_set)
+    accuracy = (np.array(train_targets).flatten() == pred).astype(int).sum() / len(train_targets)
        
-    # 打印当前epoch数和模型在训练集上的正确率
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy)) 

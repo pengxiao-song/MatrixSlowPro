@@ -2,15 +2,10 @@ import sys
 sys.path.append('..')
 
 import matrixslow as ms
-from sklearn.preprocessing import OneHotEncoder
 import numpy as np
 
 # 加载 MNIST 数据集
-X, y = ms.util.get_mnist_data("../data/mnist-original.mat")
-
-# 将整数形式的标签转换成 One-Hot 编码
-oh = OneHotEncoder(sparse=False)
-one_hot_label = oh.fit_transform(y.reshape(-1, 1))
+X, y, one_hot_label = ms.util.get_mnist_data()
 
 # 输入图像尺寸
 img_shape = (28, 28)

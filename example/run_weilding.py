@@ -5,7 +5,7 @@ import numpy as np
 import matrixslow as ms
 from scipy import signal
 
-# 构造RNN
+# 构造 RNN
 seq_len = 96  # 序列长度
 dimension = 16  # 输入维度
 status_dimension = 12  # 状态维度
@@ -58,8 +58,7 @@ label = ms.core.Variable((2, 1), trainable=False)
 # 交叉熵损失
 loss = ms.ops.CrossEntropyWithSoftMax(output, label)
 
-
-# 训练
+# 模型训练
 learning_rate = 0.005
 optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
 
@@ -91,11 +90,11 @@ for epoch in range(30):
             
             print("epoch: {:d}, iteration: {:d}, loss: {:.3f}".format(epoch + 1, i + 1, loss.value[0, 0]))
 
-            
             optimizer.update()
             batch_count = 0
         
 
+    # 模型测试
     pred = []
     for i, s in enumerate(signal_test):
         

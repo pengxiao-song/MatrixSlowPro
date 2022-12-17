@@ -1,26 +1,11 @@
 import sys
 sys.path.append('..')
 
-import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
-# 构建数据集w
-path_train = "../data/ArticularyWordRecognition_TRAIN.arff"
-path_test = "../data/ArticularyWordRecognition_TEST.arff"
-train, test = ms.util.get_awr_data(path_train, path_test)
-
-# 整理数据格式，每个样本是144x9的数组，序列共144个时刻，每个时刻9个值
-signal_train = np.array([np.array([list(channel) for channel in sample]).T for sample in train["relationalAtt"]])
-signal_test = np.array([np.array([list(channel) for channel in sample]).T for sample in test["relationalAtt"]])
-
-# 标签，One-Hot编码
-le = LabelEncoder()
-ohe = OneHotEncoder(sparse=False)
-label_train = ohe.fit_transform(le.fit_transform(train["classAttribute"]).reshape(-1, 1))
-label_test = ohe.fit_transform(le.fit_transform(test["classAttribute"]).reshape(-1, 1))
-
+# 构建数据集
+signal_train, label_train, signal_test, label_test = ms.util.get_awr_data()
 
 # 构造RNN
 seq_len = 144  # 序列长度
@@ -50,7 +35,6 @@ for iv in inputs:
 
     last_step = h
 
-
 fc1 = ms.layer.fc(h, status_dimension, 40, "ReLU")  # 第一全连接层
 output = ms.layer.fc(fc1, 40, 25, "None")  # 输出层
 
@@ -63,8 +47,7 @@ label = ms.core.Variable((25, 1), trainable=False)
 # 交叉熵损失
 loss = ms.ops.CrossEntropyWithSoftMax(output, label)
 
-
-# 训练
+# 模型训练
 learning_rate = 0.002
 optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
 
@@ -87,12 +70,10 @@ for epoch in range(500):
             
             print("epoch: {:d}, iteration: {:d}, loss: {:.3f}".format(epoch + 1, i + 1, loss.value[0, 0]))
 
-            
             optimizer.update()
             batch_count = 0
         
-
-    
+    # 测试集正确率
     pred = []
     for i, s in enumerate(signal_test):
         
@@ -105,9 +86,9 @@ for epoch in range(500):
     pred = np.array(pred).argmax(axis=1)
     true = label_test.argmax(axis=1)
     
-    # 测试集正确率
-    accuracy = (true == pred).astype(np.int).sum() / len(signal_test)
+    accuracy = (true == pred).astype(int).sum() / len(signal_test)
     
+    # 训练集正确率
     pred = []
     for i, s in enumerate(signal_train):
         
@@ -120,7 +101,6 @@ for epoch in range(500):
     pred = np.array(pred).argmax(axis=1)
     true = label_train.argmax(axis=1)
     
-    # 训练集正确率
     train_accuracy = (true == pred).astype(int).sum() / len(signal_test)
        
     print("epoch: {:d}, accuracy: {:.5f}, train accuracy: {:.5f}".format(epoch + 1, accuracy, train_accuracy))

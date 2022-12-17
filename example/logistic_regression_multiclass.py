@@ -2,26 +2,11 @@ import sys
 sys.path.append('..')
 
 import numpy as np
-import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matrixslow as ms
 
-# 读取鸢尾花数据集
-data = ms.util.get_iris_data("../data/iris.csv")
-
-# 将字符串形式的类别标签转换成整数 0，1，2
-le = LabelEncoder()
-number_label = le.fit_transform(data["Species"])
-
-# 将整数形式的标签转换成 One-Hot 编码
-oh = OneHotEncoder(sparse=False)
-one_hot_label = oh.fit_transform(number_label.reshape(-1, 1))
-
-# 特征列
-features = data[['SepalLengthCm',
-                 'SepalWidthCm',
-                 'PetalLengthCm',
-                 'PetalWidthCm']].values
+# 获取数据
+features, number_label, one_hot_label = ms.util.get_iris_data()
 
 
 # 构造计算图：输入向量，是一个 4x1 矩阵，不需要初始化，不参与训练
@@ -102,7 +87,7 @@ for epoch in range(200):
     pred = np.array(pred).argmax(axis=1)
     
     # 判断预测结果与样本标签相同的数量与训练集总数量之比，即模型预测的正确率
-    accuracy = (number_label == pred).astype(int).sum() / len(data)
+    accuracy = (number_label == pred).astype(int).sum() / len(features)
        
     # 打印当前epoch数和模型在训练集上的正确率
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

@@ -46,7 +46,7 @@ label = ms.core.Variable((2, 1), trainable=False)
 # 交叉熵损失
 loss = ms.ops.CrossEntropyWithSoftMax(output, label)
 
-# 训练
+# 模型训练
 learning_rate = 0.005
 optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
 
@@ -69,10 +69,10 @@ for epoch in range(20):
             optimizer.update()
             batch_count = 0
     
+    # 模型测试
     pred = []
     for i, s in enumerate(signal_test):
                 
-        # 将每个样本各时刻的向量赋给相应变量
         for j, x in enumerate(inputs):
             x.set_value(np.mat(s[j]).T)
 
