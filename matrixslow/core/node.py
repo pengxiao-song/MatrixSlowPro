@@ -16,9 +16,10 @@ class Node:
         # 节点所属计算图
         self.graph = kargs.get('graph', default_graph)
 
-        # 节点名称
+        # 节点名称、是否需要保存
         self.name = self.generate_node_name(**kargs)
-
+        self.need_save = kargs.get('need_save', True)
+        
         # 该节点的父节点和子节点
         self.parents: List[Node] = list(parents)
         self.children: List[Node] = []
@@ -50,9 +51,7 @@ class Node:
         '''
         生成节点名称
         '''
-        name = kargs.get('name', '')
-        name = '{}:{}:{}'.format(name, self.__class__.__name__, self.graph.count_node())
-
+        name = kargs.get('name', '{}:{}'.format(self.__class__.__name__, self.graph.count_node()))
         if self.graph.name_scope:
             name = '{}/{}'.format(self.graph.name_scope, name)
 

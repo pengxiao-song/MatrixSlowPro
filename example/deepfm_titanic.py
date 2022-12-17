@@ -5,30 +5,8 @@ import matrixslow as ms
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import numpy as np
 
-# 读取数据，去掉无用列
-data = ms.util.get_titanic_data("../data/titanic.csv")
-
-# 构造编码类
-le = LabelEncoder()
-ohe = OneHotEncoder(sparse=False)
-
-# 对类别型特征做One-Hot编码
-Pclass = ohe.fit_transform(le.fit_transform(data["Pclass"].fillna(0)).reshape(-1, 1))
-Sex = ohe.fit_transform(le.fit_transform(data["Sex"].fillna("")).reshape(-1, 1))
-Embarked = ohe.fit_transform(le.fit_transform(data["Embarked"].fillna("")).reshape(-1, 1))
-
-# 组合特征列
-features = np.concatenate([Pclass,
-                           Sex,
-                           data[["Age"]].fillna(0),
-                           data[["SibSp"]].fillna(0),
-                           data[["Parch"]].fillna(0),
-                           data[["Fare"]].fillna(0),
-                           Embarked
-                           ], axis=1)
-
-# 标签
-labels = data["Survived"].values * 2 - 1
+# 读取数据
+features, labels, Pclass, Sex, Embarked = ms.util.get_titanic_data()
 
 # 特征维数
 dimension = features.shape[1]
@@ -50,7 +28,7 @@ label = ms.core.Variable(dim=(1, 1), init=False, trainable=False)
 # 一次项权值向量
 w = ms.core.Variable(dim=(1, dimension), init=True, trainable=True)
 
-# 类别类特征的嵌入矩阵
+# 类别特征嵌入矩阵
 E_Pclass = ms.core.Variable(dim=(k, Pclass.shape[1]), init=True, trainable=True)
 E_Sex = ms.core.Variable(dim=(k, Sex.shape[1]), init=True, trainable=True)
 E_Embarked = ms.core.Variable(dim=(k, Embarked.shape[1]), init=True, trainable=True)
@@ -58,13 +36,10 @@ E_Embarked = ms.core.Variable(dim=(k, Embarked.shape[1]), init=True, trainable=T
 # 偏置
 b = ms.core.Variable(dim=(1, 1), init=True, trainable=True)
 
-
-# 三个嵌入向量
+# 嵌入向量
 embedding_Pclass = ms.ops.MatMul(E_Pclass, x_Pclass)
 embedding_Sex = ms.ops.MatMul(E_Sex, x_Sex)
 embedding_Embarked = ms.ops.MatMul(E_Embarked, x_Embarked)
-
-# 将三个嵌入向量连接在一起
 embedding = ms.ops.Concat(
     embedding_Pclass,
     embedding_Sex,
@@ -78,13 +53,9 @@ fm = ms.ops.Add(ms.ops.MatMul(w, x),   # 一次部分
                 )
 
 
-# Deep部分，第一隐藏层
+# Deep部分
 hidden_1 = ms.layer.fc(embedding, 3 * k, 8, "ReLU")
-
-# 第二隐藏层
 hidden_2 = ms.layer.fc(hidden_1, 8, 4, "ReLU")
-
-# 输出层
 deep = ms.layer.fc(hidden_2, 4, 1, None)
 
 # 输出
@@ -95,21 +66,16 @@ predict = ms.ops.Logistic(output)
 
 # 损失函数
 loss = ms.ops.loss.LogLoss(ms.ops.Multiply(label, output))
-
-learning_rate = 0.005
-optimizer = ms.optimizer.Adam(ms.default_graph, loss, learning_rate)
+optimizer = ms.optimizer.Adam(ms.default_graph, loss, lr=0.005)
 
 
 batch_size = 16
-
 for epoch in range(50):
 
     batch_count = 0
     for i in range(len(features)):
 
         x.set_value(np.mat(features[i]).T)
-
-        # 从特征中选择各段 One-Hot 编码
         x_Pclass.set_value(np.mat(features[i, :3]).T)
         x_Sex.set_value(np.mat(features[i, 3:5]).T)
         x_Embarked.set_value(np.mat(features[i, 9:]).T)
@@ -124,6 +90,7 @@ for epoch in range(50):
             optimizer.update()
             batch_count = 0
 
+    # 计算训练集准确率
     pred = []
     for i in range(len(features)):
 

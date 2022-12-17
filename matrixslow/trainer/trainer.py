@@ -1,5 +1,8 @@
 import abc
-import matrixslow as ms
+from ..ops import LossFunction
+from ..optimizer import Optimizer
+from ..ops import Metrics
+from ..core import Node
 import numpy as np
 
 
@@ -10,13 +13,13 @@ class Trainer:
 
     def __init__(self,
                  input_x: list,
-                 input_y: list,
-                 loss: ms.ops.LossFunction,
-                 optimizer: ms.optimizer.Optimizer,
+                 input_y: Node,
+                 loss: LossFunction,
+                 optimizer: Optimizer,
                  epoches: int,
                  batch_size: int = 8,
                  eval_on_train: bool = False,
-                 metrics: ms.ops.Metrics = None,
+                 metrics: Metrics = None,
                  *args, **kargs):
 
         # 计算图的输入节点和标签节点

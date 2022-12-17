@@ -162,7 +162,7 @@ class Reshape(Operator):
         super().__init__(*parents, **kargs)
 
         self.to_reshape = kargs.get('shape')
-        assert isinstance(self.to_reshape, tuple) and len(self.to_reshape) == 2
+        assert len(self.to_reshape) == 2
 
     def compute(self):
         self.value = self.parents[0].value.reshape(self.to_reshape)

@@ -1,4 +1,3 @@
-import matrixslow as ms
 from .trainer import Trainer
 
 class SimpleTrainer(Trainer):
